@@ -1,4 +1,5 @@
 const axios = require("axios");
+
 const http = require('http');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -6,10 +7,10 @@ const groupModel = require('../models/groupModel')
 const Group = mongoose.model('Group');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 // Twilio Credentials
-const accountSid = process.env.A_SID;
-const authToken = process.env.A_TOKEN;
+//const accountSid = process.env.A_SID;
+//const authToken = process.env.A_TOKEN;
 // require the Twilio module and create a REST client
-const client = require('twilio')(accountSid, authToken);
+//const client = require('twilio')(accountSid, authToken);
 
 
 module.exports = {
@@ -19,6 +20,13 @@ module.exports = {
 	mainPost(req,res) {
 		var messageContent = req.body.Body; // text message content
 		const twiml = new MessagingResponse();
+		Group.find({}, (err, groups) => {
+			if (err)
+				return err;
+			twiml.message(groups[0].leader.name)
+		});
+
+		
 		/*
 		Body here
 		*/
@@ -47,13 +55,29 @@ module.exports = {
 		res.end(twiml.toString());
 	},
 
-	/*
+	test() {
+
+		Group.find({}, (err, groups) => {
+			if (err)
+				return err;
+			SendMessage("","","helldadaso");
+		});
+	}
+
+	
+};
+
+
+
+/*
 	sends message to phone number
 	m - messsage
 	s - sender
 	r - reciever
 	*/
-	SendMessage(s,r,m) {
+function SendMessage(s,r,m) {
+		console.log(m);
+		/*
 		client.messages
 		.create({
 			to: r,
@@ -61,55 +85,58 @@ module.exports = {
 			body: m,
 		})
 		.then(message => console.log(message.sid));
+		*/
 	}
-
 
 	/*
 	Creates a new group, with a leader input
 	*/
-	CreateGroup(l) { // l = leader
-		const newGroup = new Group({leader:l,members:[l]})
+function CreateGroup(l_name,l_num) { // l = leader
+		const newGroup = new Group({leader:{name:l_name,number:l_num},members:[{name:l_name,number:l_num}]})
 		newGroup.save((err, response) => {
 			if (err)
 				console.log(err);
-			return response;
+			console.log(response);
 		});
-	},
+	}
 	/*
 	Grabs a list of all of the groups in db
 	*/
-	GetAll() {
+
+function GetAll () {
+		
 		Group.find({}, (err, groups) => {
 			if (err)
-				console.log(err);
-			return groups;
+				return err;
+			SendMessage("","","helldadaso");
 		});
-	},
+}
+	
 	/*
 	Grabs a single group by leader
 	*/
-	GetByLeader(l) {
+function GetByLeader(l) {
 		Group.find({leader:l}, (err, groups) => {
 			if (err)
 				console.log(err);
 			return groups;
 		});
-	},
+	}
 	/*
 	Clears all groups within the db 
 	*/
-	ClearAll() {
+function	ClearAll() {
 		Group.remove({}, (err, groups) => {
 			if(err)
 				console.log(err);
 			console.log(groups);
 		})
-	},
+	}
 	/*
 	adds user to group
 	find group by leader number
 	*/
-	addMember(l,member) { // l = leader's number
+function addMember(l,member) { // l = leader's number
 
 		var allMembers = GetByLeader(l).members // arrray of memebers
 		allMembers.push(member);
@@ -119,12 +146,12 @@ module.exports = {
                 return g;
 			});
 
-	},
+	}
 	/*
 	delete specific group
 	find group by leader
 	*/
-	deleteGroupByLeader(l) { // l = leader
+function deleteGroupByLeader(l) { // l = leader
 		Group.remove({ l: leader }, (err, g) => {
 			if (err)
 				console.log(err)
@@ -132,12 +159,12 @@ module.exports = {
 
 			return g;
 		});
-	},
+	}
 	/*
 	delete specific member from a group 
 	find group by leader
 	*/
-	deleteMember(l,member) {
+function deleteMember(l,member) {
 
 		var allMembers = GetByLeader(l).members // arrray of memebers
 		var i = temp.indexOf(allMembers)
@@ -150,8 +177,5 @@ module.exports = {
 			});
 		} 
 	}
-};
-
-
 
 

@@ -6,6 +6,8 @@ module.exports = function (app) {
 		.get(mainHelper.main)
 	app.route('/sms')
 		.post(mainHelper.mainPost)
+	app.route('/test')
+		.get(mainHelper.test)
 	
 	
 };
